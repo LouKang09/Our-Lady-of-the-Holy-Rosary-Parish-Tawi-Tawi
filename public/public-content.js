@@ -22,7 +22,7 @@ async function home(){
  const status=document.getElementById('public-update-status');
  try{const d=await api('/api/public');const s=d.settings;applyPageSettings(s);startSlideshow(s);
  if(s.heroImage&&!s.heroImages?.length){document.querySelector('.hero-image').style.backgroundImage=`url('/media/${s.heroImage}')`;document.querySelector('.hero-image').setAttribute('aria-label','Parish photograph selected by the parish administrator');}
- if(s.aboutImage){const img=document.querySelector('.about-photo img');img.src='/media/'+s.aboutImage;img.alt='Parish community photograph';}
+ {const img=document.querySelector('.about-photo img');const src=s.aboutImage?'/media/'+s.aboutImage:'/assets/rosary.jpg';if(img.getAttribute('src')!==src)img.src=src;img.alt=s.aboutImage?'Parish community photograph':'A wooden rosary and cross, a reminder to make time for prayer';img.hidden=false;}
  if((s.heroImage||s.heroImages?.length)&&s.aboutImage)document.getElementById('image-credit')?.remove();
  if(s.welcome){const lead=document.querySelector('.about-copy .lead');if(!Object.hasOwn(s.copy||{},lead.dataset.copy))lead.textContent=s.welcome;}
  const info=document.getElementById('managed-contact');if(info)info.innerHTML=`<span class="small-label">PARISH OFFICE</span><p>${s.officeHours?paragraph(s.officeHours):'Office hours are awaiting confirmation.'}</p>${s.phone?`<p><a href="tel:${e(s.phone.replace(/[^+\d]/g,''))}">${e(s.phone)}</a></p>`:''}${s.email?`<p><a href="mailto:${e(s.email)}">${e(s.email)}</a></p>`:''}${!s.phone&&!s.email?'<p class="muted">Official contact details are awaiting confirmation. Please speak with parish staff during your visit.</p>':''}`;

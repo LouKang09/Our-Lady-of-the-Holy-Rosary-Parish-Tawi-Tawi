@@ -8,6 +8,22 @@ const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:
 const id=prefix=>prefix+crypto.randomUUID();
 function resource(path,status=200){const asset=assets[path];if(!asset)return new Response('Not found',{status:404});const binary=Uint8Array.from(atob(asset[1]),x=>x.charCodeAt(0));return new Response(binary,{status,headers:{'content-type':asset[0],'cache-control':path.endsWith('.html')?'no-store':'public, max-age=300'}});}
 function publicHtml(path='/index.html'){return resource(path);}
+async function homepage(env){
+ let html=await resource('/index.html').text();
+ try{
+  const s=await settings(env),photo=id=>/^m_[a-z0-9-]{36}$/.test(id||'')?'/media/'+id:'/assets/rosary.jpg';
+  const first=s.heroImages?.length?s.heroImages[0]:s.heroImage,hero=photo(first),about=photo(s.aboutImage);
+  const position=['center','top','bottom','left','right'].includes(s.heroPosition)?s.heroPosition:'center';
+  html=html.replace('data-home-photo="hero"','data-home-photo="hero" style="background-image:url(\''+hero+'\');background-position:'+position+'"');
+  html=html.replace('data-home-photo="about" hidden','data-home-photo="about" src="'+about+'"');
+  if(!first)html=html.replace('aria-label="Parish background photograph"','aria-label="Wooden rosary beads and cross resting on a dark surface"');
+  if(!s.aboutImage)html=html.replace('alt="Parish community photograph"','alt="A wooden rosary and cross, a reminder to make time for prayer"');
+  html=html.replace('</head>','<link rel="preload" as="image" href="'+hero+'" fetchpriority="high"></head>');
+  if(first&&s.aboutImage)html=html.replace(/<p class="image-credit" id="image-credit">.*?<\/p>/,'');
+ }catch{console.error('Homepage photo settings unavailable; awaiting client retry.');}
+ return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
+}
+
 function htmlPage(title,body,status=200){const html=`<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(title)} | Holy Rosary Parish</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/cms.css"><script type="module" src="/public-content.js"></script></head><body><header class="inner-header"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✝</span><span>Our Lady of the<br><strong>Holy Rosary Parish</strong></span></a><a href="/">Back to parish home →</a></header><main class="article-page">${body}</main><footer><a href="/">Our Lady of the Holy Rosary Parish · Bongao, Tawi-Tawi</a></footer></body></html>`;return new Response(html,{status,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});}
 async function readJson(request){if(!request.headers.get('content-type')?.startsWith('application/json'))fail('Send JSON content.',415);const raw=await limitedBody(request,120000);try{return JSON.parse(new TextDecoder().decode(raw));}catch{fail('The submitted data could not be read.');}}
 async function limitedBody(request,max){if(Number(request.headers.get('content-length'))>max)fail('The file or content is too large.',413);if(!request.body)return new Uint8Array();const reader=request.body.getReader();let size=0,chunks=[];for(;;){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>max){await reader.cancel();fail('The file or content is too large.',413);}chunks.push(value);}const result=new Uint8Array(size);let pos=0;for(const part of chunks){result.set(part,pos);pos+=part.length;}return result;}
@@ -99,7 +115,7 @@ async function handle(request,env){
  const article=path.match(/^\/blog\/(c_[a-z0-9-]{36})$/);
  if(article){const row=await db(env).prepare("SELECT * FROM content WHERE id=? AND kind='post' AND status='published' AND deleted=0").bind(article[1]).first();if(!row)return htmlPage('Post not found','<h1>This post is not available.</h1><p><a href="/blog">Browse parish stories →</a></p>',404);const r=publicRow(row);let images=[];for(const photo of r.images){images.push(await db(env).prepare('SELECT id,alt FROM media WHERE id=?').bind(photo).first());}return htmlPage(r.title,`<a class="text-link" href="/blog">← Parish stories</a><div class="eyebrow article-kicker">PARISH LIFE</div><h1>${e(r.title)}</h1><p class="article-meta">${e(new Date(r.createdAt).toLocaleDateString('en-PH',{timeZone:'Asia/Manila',year:'numeric',month:'long',day:'numeric'}))}${r.data.author?' · '+e(r.data.author):''}</p>${images[0]?`<img class="article-cover" src="/media/${images[0].id}" alt="${e(images[0].alt)}">`:''}<div class="article-body">${r.body.split(/\n\s*\n/).map(p=>`<p>${e(p).replace(/\n/g,'<br>')}</p>`).join('')}</div><div class="article-gallery">${images.slice(1).filter(Boolean).map(p=>`<figure><img src="/media/${p.id}" alt="${e(p.alt)}" loading="lazy"><figcaption>${e(p.alt)}</figcaption></figure>`).join('')}</div>`);}
  if(['/blog','/events','/schedules','/collections','/people'].includes(path))return publicHtml('/listing.html');
- if(path==='/')return publicHtml();
+ if(path==='/')return homepage(env);
  if(assets[path]&&path!=='/index.html')return resource(path);
  return htmlPage('Page not found','<h1>Let’s find your way back.</h1><p>This page does not exist. <a href="/">Return to the parish homepage →</a></p>',404);
 }
