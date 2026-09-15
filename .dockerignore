@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+.local-data
+.env
+.dev.vars
+.sites-runtime
+upload
+tests

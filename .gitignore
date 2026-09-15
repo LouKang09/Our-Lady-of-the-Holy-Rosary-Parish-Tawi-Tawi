@@ -1,0 +1,7 @@
+.sites-runtime/
+node_modules/
+dist/
+.env
+.dev.vars
+
+.local-data/

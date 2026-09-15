@@ -1,0 +1,25 @@
+export function applyPageSettings(s){
+ for(const node of document.querySelectorAll('[data-copy]'))if(Object.hasOwn(s.copy||{},node.dataset.copy)){node.textContent=s.copy[node.dataset.copy];node.classList.add('custom-copy');}
+ if(s.parishName){document.querySelectorAll('.brand>span:last-child').forEach(node=>{node.textContent=s.parishName;node.classList.add('editable-brand-name');});document.querySelectorAll('.visit-info h3').forEach(node=>node.textContent=s.parishName);const copyright=document.querySelector('footer .footer-bottom>span:first-child');if(copyright)copyright.textContent=`© ${new Date().getFullYear()} ${s.parishName}`;}
+ const selectors={about:'#about',masses:'#masses',sacraments:'#sacraments',quote:'#quote',updates:'#updates',events:'#events',collections:'#collections-home',people:'#people',visit:'#visit'};
+ for(const [key,selector] of Object.entries(selectors)){const node=document.querySelector(selector);if(node)node.hidden=s.sectionVisibility?.[key]===false;}
+ document.querySelectorAll('a[href^="#"]').forEach(link=>{const target=document.getElementById(link.getAttribute('href').slice(1));if(target?.hidden&&Object.values(selectors).includes('#'+target.id))link.hidden=true;});
+ const map=document.querySelector('.visit-copy a[target="_blank"]');if(map)map.href=s.mapUrl||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.parishName+' '+s.address);
+ if(map&&s.mapUrl){const note=document.querySelector('.map-note');if(note)note.textContent='Opens the parish location in a new tab.';}
+ if(s.facebook&&!document.getElementById('parish-facebook')){const footer=document.querySelector('.footer-top');if(footer){const a=document.createElement('a');a.id='parish-facebook';a.textContent='Parish Facebook ↗';a.href=s.facebook;a.target='_blank';a.rel='noopener noreferrer';footer.append(a);}}
+}
+export function startSlideshow(s){
+ const hero=document.querySelector('.hero');if(!hero)return;hero.dataset.align=s.heroAlignment||'center';hero.style.setProperty('--hero-shade',String((s.heroOverlay??55)/100));
+ const front=hero.querySelector('.hero-image');front.style.backgroundPosition=s.heroPosition||'center';
+ const slides=s.heroImages?.length?s.heroImages:s.heroImage?[s.heroImage]:[];if(!slides.length)return;
+ const controls=document.getElementById('slideshow-controls');const reduced=matchMedia('(prefers-reduced-motion: reduce)');let index=0,paused=!s.heroAutoplay||reduced.matches,timer,focused=false,hovered=false,generation=0;
+ const back=document.createElement('div');back.className='hero-image-next';back.setAttribute('aria-hidden','true');hero.insertBefore(back,hero.querySelector('.hero-shade'));back.style.backgroundPosition=s.heroPosition||'center';
+ function refresh(){clearTimeout(timer);if(!paused&&!document.hidden&&!focused&&!hovered&&slides.length>1)timer=setTimeout(()=>show((index+1)%slides.length),(s.heroInterval||7)*1000);const p=document.getElementById('pause-slides');p.textContent=paused?'Play slideshow':'Pause slideshow';p.setAttribute('aria-pressed',String(paused));}
+ function dots(){document.querySelectorAll('[data-slide-index]').forEach((dot,i)=>{dot.setAttribute('aria-pressed',String(i===index));dot.classList.toggle('selected',i===index);});}
+ function show(next){clearTimeout(timer);const thisLoad=++generation;const img=new Image();img.onload=()=>{if(thisLoad!==generation)return;index=next;const src=`url('/media/${slides[index]}')`;if(reduced.matches){front.style.backgroundImage=src;}else{back.style.backgroundImage=src;back.style.opacity='1';setTimeout(()=>{if(thisLoad!==generation)return;front.style.backgroundImage=src;back.style.opacity='0';},850);}front.setAttribute('aria-label',`Parish background photograph ${index+1} of ${slides.length}`);dots();refresh();};img.onerror=()=>{if(thisLoad===generation){index=next;refresh();}};img.src='/media/'+slides[next];}
+ controls.hidden=slides.length<2;document.getElementById('slide-dots').innerHTML=slides.map((_,i)=>`<button type="button" data-slide-index="${i}" aria-label="Show background photo ${i+1}" aria-pressed="${i===0}"></button>`).join('');
+ document.querySelectorAll('[data-slide-index]').forEach(button=>button.onclick=()=>show(Number(button.dataset.slideIndex)));
+ document.getElementById('previous-slide').onclick=()=>show((index-1+slides.length)%slides.length);document.getElementById('next-slide').onclick=()=>show((index+1)%slides.length);document.getElementById('pause-slides').onclick=()=>{paused=!paused;refresh();};
+ controls.addEventListener('focusin',()=>{focused=true;refresh();});controls.addEventListener('focusout',()=>{focused=false;refresh();});controls.addEventListener('mouseenter',()=>{hovered=true;refresh();});controls.addEventListener('mouseleave',()=>{hovered=false;refresh();});document.addEventListener('visibilitychange',refresh);reduced.addEventListener('change',()=>{if(reduced.matches)paused=true;refresh();});show(0);
+}
+if(document.body.classList.contains('hero-first')){const header=document.querySelector('.header');const sync=()=>header.classList.toggle('scrolled',window.scrollY>55);window.addEventListener('scroll',sync,{passive:true});sync();}
