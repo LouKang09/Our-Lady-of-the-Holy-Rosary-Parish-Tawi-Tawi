@@ -24,6 +24,14 @@ The Docker build does not create the database or photos. Migrations run when the
 
 The conventional password login is available in the Railway runtime. The existing Sites runtime continues to use platform sign-in until the host migration is completed.
 
+## Staff accounts on Railway
+
+Open **Admin account → Staff users → Add staff user** as the primary administrator. Enter a name, unique email, initial password (12–256 characters), and committee role. Available roles are Secretary staff, Choir Head, PCC Head, PPC Secretary, and KofC. Choose Other to enter a custom committee such as Choir Secretary or KofC Secretary.
+
+All staff committees receive the same posting permissions: manage blog posts, photos, events, worship schedules, Sunday collections, and parish profiles. Staff sign in through the same Admin Login page with their own email and password and may change their own password. Only the owner can create/edit/disable staff, reset their passwords, edit website settings, or read detailed audit history. Disabling an account, changing its login email, or resetting its password invalidates its sessions. Disabled accounts retain their posts. Account changes are audited without passwords or password hashes. Staff account creation does not send email.
+
+Migration 0002 preserves the existing sole administrator as the owner. Newly created staff can never assign themselves owner access; their committee label does not grant additional privileges.
+
 ## Public pages
 
 - `/` — existing parish design, managed photos/contact information and latest updates
@@ -35,7 +43,7 @@ The conventional password login is available in the Railway runtime. The existin
 
 ## Administration
 
-`/admin` uses dispatch-owned Sign in with ChatGPT. The server requires the owner email configured in `ADMIN_EMAIL`, then pins the stable, site-scoped user ID on first access. Every admin API checks authorization; mutations also require the same origin and a custom request header. There is no public registration or shared default password.
+On the original Sites host, `/admin` uses dispatch-owned Sign in with ChatGPT. Railway uses the owner/staff password accounts described above. The server requires the owner email configured in `ADMIN_EMAIL`, then pins the stable, site-scoped user ID on first access. Every admin API checks authorization; mutations also require the same origin and a custom request header. There is no public registration or shared default password.
 
 The owner can create, edit, publish, unpublish, and delete content; upload JPG/PNG/WebP photos up to 8 MB; choose homepage photographs; and change official visitor information. Drafts and unused uploads are private. Photos referenced by drafts or published records cannot be deleted. Publishing content exposes only its selected photos. Photos and structured records persist in R2 and D1 respectively.
 

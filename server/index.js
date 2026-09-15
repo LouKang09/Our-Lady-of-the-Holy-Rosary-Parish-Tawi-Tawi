@@ -74,13 +74,13 @@ async function handle(request,env){
  }
  if(path.startsWith('/api/admin/')){
   const user=await requireAdmin(request,env);if(!['GET','HEAD'].includes(request.method))requireSameOrigin(request);
-  if(path==='/api/admin/session')return json({email:user.email,userId:user.userId,authMode:env.AUTH_MODE||'chatgpt'});
+  if(path==='/api/admin/session')return json({email:user.email,userId:user.userId,authMode:env.AUTH_MODE||'chatgpt',role:user.role,name:user.name||'',committee:user.committee||''});
   if(path==='/api/admin/overview'){const results=await db(env).prepare('SELECT kind,status,COUNT(*) AS count FROM content WHERE deleted=0 GROUP BY kind,status').all();const recent=await db(env).prepare('SELECT id,entity_id,action,created_at FROM audit ORDER BY created_at DESC LIMIT 8').all();return json({counts:results.results,recent:recent.results});}
   if(path==='/api/admin/copy-schema')return json({fields:copyFields});
-  if(path==='/api/admin/settings')return saveSettings(request,env,user);
+  if(path==='/api/admin/settings'){if(user.role==='staff'&&request.method!=='GET')fail('Only the primary administrator can change website settings.',403);return saveSettings(request,env,user);}
   const content=path.match(/^\/api\/admin\/content(?:\/(c_[a-z0-9-]{36}))?$/);if(content)return adminContent(request,env,user,content[1]);
   const media=path.match(/^\/api\/admin\/media(?:\/(m_[a-z0-9-]{36}))?$/);if(media)return adminMedia(request,env,user,media[1]);
-  if(path==='/api/admin/audit'){const result=await db(env).prepare('SELECT * FROM audit ORDER BY created_at DESC LIMIT 100').all();return json({items:result.results});}
+  if(path==='/api/admin/audit'){if(user.role==='staff')fail('Only the primary administrator can view the audit history.',403);const result=await db(env).prepare('SELECT * FROM audit ORDER BY created_at DESC LIMIT 100').all();return json({items:result.results});}
   fail('This admin action was not found.',404);
  }
  if(path.startsWith('/api/public')){
