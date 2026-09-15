@@ -1,5 +1,4 @@
 export function applyPageSettings(s){
- for(const node of document.querySelectorAll('[data-copy]'))if(Object.hasOwn(s.copy||{},node.dataset.copy)){node.textContent=s.copy[node.dataset.copy];node.classList.add('custom-copy');}
  if(s.parishName){document.querySelectorAll('.brand>span:last-child').forEach(node=>{node.textContent=s.parishName;node.classList.add('editable-brand-name');});document.querySelectorAll('.visit-info h3').forEach(node=>node.textContent=s.parishName);const copyright=document.querySelector('footer .footer-bottom>span:first-child');if(copyright)copyright.textContent=`© ${new Date().getFullYear()} ${s.parishName}`;}
  const selectors={about:'#about',masses:'#masses',sacraments:'#sacraments',quote:'#quote',updates:'#updates',events:'#events',collections:'#collections-home',people:'#people',visit:'#visit'};
  for(const [key,selector] of Object.entries(selectors)){const node=document.querySelector(selector);if(node)node.hidden=s.sectionVisibility?.[key]===false;}
@@ -7,6 +6,8 @@ export function applyPageSettings(s){
  const map=document.querySelector('.visit-copy a[target="_blank"]');if(map)map.href=s.mapUrl||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.parishName+' '+s.address);
  if(map&&s.mapUrl){const note=document.querySelector('.map-note');if(note)note.textContent='Opens the parish location in a new tab.';}
  if(s.facebook&&!document.getElementById('parish-facebook')){const footer=document.querySelector('.footer-top');if(footer){const a=document.createElement('a');a.id='parish-facebook';a.textContent='Parish Facebook ↗';a.href=s.facebook;a.target='_blank';a.rel='noopener noreferrer';footer.append(a);}}
+ // Explicit page edits take precedence over parish-name and map-link defaults.
+ for(const node of document.querySelectorAll('[data-copy]'))if(Object.hasOwn(s.copy||{},node.dataset.copy)){node.textContent=s.copy[node.dataset.copy];node.classList.add('custom-copy');}
 }
 export function startSlideshow(s){
  const hero=document.querySelector('.hero');if(!hero)return;hero.dataset.align=s.heroAlignment||'center';hero.style.setProperty('--hero-shade',String((s.heroOverlay??55)/100));

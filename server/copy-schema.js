@@ -629,4 +629,13 @@ export const copyFields=[
     "default": "Plan your visit",
     "max": 120
   }
-];
+].map(field=>{
+ const number=Number(field.key.replace('copy_',''));
+ if(number>=20&&number<=28)return {...field,group:'Mass & prayer — before schedules are published',help:'Shown only when there are no active published schedules. To change published times and details, use Mass & prayer schedules.'};
+ if(field.key==='copy_58')return {...field,help:'The parish heading in Contact & visit. This text overrides the general parish name for this heading only.'};
+ if(field.key==='copy_57')return {...field,help:'The note below the location button. Your saved wording is used even when a direct map link is configured.'};
+ const page=field.key.match(/^(blog|events|schedules|collections|people)(Title|Description)$/);
+ if(page)return {...field,label:page[2]==='Title'?'Page heading':'Page introduction',help:'Shown on /'+page[1]+'. Homepage section text is edited separately.'};
+ if(['priestsLabel','ppcLabel','choirLabel','staffLabel'].includes(field.key))return {...field,help:'Shown on the homepage group card and in the parish people page filter and profile badges.'};
+ return field;
+});
