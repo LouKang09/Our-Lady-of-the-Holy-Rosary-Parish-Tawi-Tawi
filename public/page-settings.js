@@ -1,5 +1,13 @@
+export function applyBranding(s){
+ if(s.parishName)document.querySelectorAll('.brand').forEach(node=>node.setAttribute('aria-label',s.parishName+' home'));
+ if(s.parishName)document.querySelectorAll('.brand>span:last-child').forEach(node=>{node.textContent=s.parishName;node.classList.add('editable-brand-name');});
+ const src=/^m_[a-z0-9-]{36}$/.test(s.logoImage||'')?'/media/'+s.logoImage:'';
+ for(const mark of document.querySelectorAll('.brand-mark')){mark.classList.toggle('has-logo',!!src);mark.setAttribute('aria-hidden','true');if(src){let img=mark.querySelector('img');if(!img){img=document.createElement('img');img.alt='';img.width=64;img.height=64;mark.replaceChildren(img);}if(img.getAttribute('src')!==src)img.src=src;}else mark.textContent='✝';}
+ let icon=document.querySelector('link[rel="icon"]');if(!icon){icon=document.createElement('link');icon.rel='icon';document.head.append(icon);}icon.href=src||'/favicon.svg';if(src)icon.removeAttribute('type');else icon.type='image/svg+xml';
+}
 export function applyPageSettings(s){
- if(s.parishName){document.querySelectorAll('.brand>span:last-child').forEach(node=>{node.textContent=s.parishName;node.classList.add('editable-brand-name');});document.querySelectorAll('.visit-info h3').forEach(node=>node.textContent=s.parishName);const copyright=document.querySelector('footer .footer-bottom>span:first-child');if(copyright)copyright.textContent=`© ${new Date().getFullYear()} ${s.parishName}`;}
+ applyBranding(s);
+ if(s.parishName){document.querySelectorAll('.visit-info h3').forEach(node=>node.textContent=s.parishName);const copyright=document.querySelector('footer .footer-bottom>span:first-child');if(copyright)copyright.textContent=`© ${new Date().getFullYear()} ${s.parishName}`;}
  const selectors={about:'#about',masses:'#masses',sacraments:'#sacraments',quote:'#quote',updates:'#updates',events:'#events',collections:'#collections-home',people:'#people',visit:'#visit'};
  for(const [key,selector] of Object.entries(selectors)){const node=document.querySelector(selector);if(node)node.hidden=s.sectionVisibility?.[key]===false;}
  document.querySelectorAll('a[href^="#"]').forEach(link=>{const target=document.getElementById(link.getAttribute('href').slice(1));if(target?.hidden&&Object.values(selectors).includes('#'+target.id))link.hidden=true;});

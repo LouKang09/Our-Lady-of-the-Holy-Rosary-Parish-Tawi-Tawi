@@ -1,4 +1,4 @@
-import {applyPageSettings,startSlideshow} from './page-settings.js?v=copy-precedence-1';
+import {applyPageSettings,startSlideshow} from './page-settings.js?v=branding-1';
 const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=cents=>new Intl.NumberFormat('en-PH',{style:'currency',currency:'PHP'}).format(cents/100);
 const date=value=>new Date(value.length===10?value+'T12:00:00+08:00':value).toLocaleDateString('en-PH',{timeZone:'Asia/Manila',year:'numeric',month:'long',day:'numeric'});

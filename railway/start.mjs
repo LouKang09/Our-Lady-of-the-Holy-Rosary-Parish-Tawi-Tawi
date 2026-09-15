@@ -1,3 +1,4 @@
+import {brandResponse} from '../dist/server/branding.js';
 import http from 'node:http';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -19,7 +20,7 @@ export function createParishServer(config){
    const pathname=new URL(request.url).pathname;let response;
    if(pathname.startsWith('/api/auth/'))response=await auth.handle(request,req.socket.remoteAddress);
    else if(['/admin/login','/admin/setup','/admin/logout'].includes(pathname)||(['/admin','/admin/','/admin.html'].includes(pathname)&&!account)){
-    if(account&&pathname==='/admin/login')response=Response.redirect(config.origin+'/admin',303);else response=new Response(await fs.readFile('public/login.html'),{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
+    if(account&&pathname==='/admin/login')response=Response.redirect(config.origin+'/admin',303);else response=await brandResponse(new Response(await fs.readFile('public/login.html'),{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}}),env);
    }else response=await worker.fetch(request,{...env,AUTH_ACCOUNT:account});
    const out=Object.fromEntries(response.headers);out['x-content-type-options']='nosniff';out['referrer-policy']='no-referrer';out['cache-control']=response.headers.get('cache-control')||'no-store';res.writeHead(response.status,out);if(req.method==='HEAD'||!response.body)res.end();else Readable.fromWeb(response.body).pipe(res);
   }catch(error){console.error('Parish server error',error.message);if(!res.headersSent)res.writeHead(503,{'content-type':'application/json'});res.end(JSON.stringify({error:'Service temporarily unavailable. Please try again.'}));}
