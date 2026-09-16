@@ -66,3 +66,26 @@ For Railway, `npm start` runs the Node HTTP adapter around the same application.
 The backend workflow tests exercise real SQLite migrations via a D1-compatible test adapter and an in-memory R2 test double. They cover owner authorization, origin protection, publish/unpublish behavior, draft-media privacy, invalid uploads, exact collection totals, Sunday uniqueness, stale edits, audit history, schedule validation and settings. Browser/device QA is not part of this test suite.
 
 Default devotional photograph: James Coleman, Unsplash, https://unsplash.com/photos/QHRZv6PIW4s. It does not depict the parish building. Photo attribution remains until both original homepage placements are replaced.
+
+### Parish leadership hierarchy
+
+The primary administrator can open **Parish hierarchy** (`/admin#hierarchy`).
+The starter chart includes the Parish Priest, choir, PPC, KofC, youth, separate
+Knights and Ladies of the Altar, secretary, and utility/maintenance positions.
+Select a circle to edit its name, position, and photograph. Select **Other** to
+enter a custom committee or position. **Under the leadership of** assigns any
+eligible leader. Dragging a photo onto another leader moves the person and their
+entire downline; the priest remains the single root. The editor also supports
+undoing the last move, removing positions (direct members move up one level),
+copying names/photos from directory profiles, and discarding unsaved changes.
+Copied profile details are independent of the historical directory.
+
+**Save & publish hierarchy** updates `/hierarchy`; unsaved edits stay in the
+current browser page. The initial public chart is empty until the first save.
+The chart has circular portraits, connecting lines, collapsible branches, zoom,
+and an indented list view (selected initially on small screens). There are up to
+200 positions and 12 levels below the priest. Cycles and stale saves are rejected.
+Hierarchy data is stored in the existing SQLite settings table under its own
+`hierarchy` row, independently of homepage settings, with an audit record for
+each save. Referenced photographs are publicly accessible and protected from
+photo-library deletion until removed from the saved hierarchy.

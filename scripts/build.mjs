@@ -13,3 +13,6 @@ await fs.cp('server','dist/server',{recursive:true});
 await fs.copyFile('.openai/hosting.json','dist/.openai/hosting.json');
 await fs.cp('drizzle','dist/.openai/drizzle',{recursive:true});
 console.log('Built parish website, protected admin, API, and migrations.');
+
+await fs.mkdir('dist/public',{recursive:true});
+await fs.copyFile('public/hierarchy-view.js','dist/public/hierarchy-view.js');

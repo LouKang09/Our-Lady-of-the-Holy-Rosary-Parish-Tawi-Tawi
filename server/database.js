@@ -4,5 +4,6 @@ export async function settings(env){const row=await db(env).prepare('SELECT data
 export async function verifyImages(env,ids){for(const id of ids){if(!await db(env).prepare('SELECT id FROM media WHERE id=?').bind(id).first())throw new HttpError(400,'One selected photo is no longer available. Please select it again.');}}
 export async function mediaUsed(env,id,publishedOnly=false){
  const s=await settings(env);if(s.logoImage===id||s.heroImage===id||s.aboutImage===id||(s.heroImages||[]).includes(id))return true;
+ const hierarchy=await db(env).prepare("SELECT 1 FROM settings,json_each(settings.data,'$.nodes') n WHERE settings.id='hierarchy' AND json_extract(n.value,'$.photo')=? LIMIT 1").bind(id).first();if(hierarchy)return true;
  const row=await db(env).prepare(`SELECT c.id FROM content c, json_each(c.images) i WHERE c.deleted=0 AND i.value=? ${publishedOnly?"AND c.status='published'":''} LIMIT 1`).bind(id).first();return !!row;
 }

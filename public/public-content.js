@@ -1,3 +1,4 @@
+import {enhanceHierarchy} from './hierarchy-public.js?v=hierarchy-1';
 import {applyPageSettings,startSlideshow} from './page-settings.js?v=branding-1';
 const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=cents=>new Intl.NumberFormat('en-PH',{style:'currency',currency:'PHP'}).format(cents/100);
@@ -54,4 +55,4 @@ async function listing(){
  if(key==='events')params.set('timeframe',document.getElementById('timeframe').value);if(key==='collections'){const year=document.getElementById('report-year');if(!year.reportValidity())return;params.set('year',year.value);}const d=await api('/api/public/records?'+params);items.push(...d.items);offset+=d.items.length;paint();more.hidden=offset>=d.count;if(key==='collections')document.getElementById('collection-summary').innerHTML=`<div class="collection-summary"><div><span class="small-label">PUBLISHED TOTAL FOR ${e(document.getElementById('report-year').value)}</span><strong>${money(d.totalCents)}</strong></div><p>${d.count} Sunday report${d.count===1?'':'s'} published<br><span>Totals include published reports only.</span></p></div>`;}catch(error){out.innerHTML=`<div class="error-state" role="alert"><p>${e(error.message)}</p><button class="secondary-button" id="retry-listing">Try again</button></div>`;document.getElementById('retry-listing').onclick=()=>load(true);}finally{busy=false;more.disabled=false;}}
  more.onclick=()=>load(false);document.getElementById('person-group')?.addEventListener('change',()=>load(true));document.getElementById('tenure')?.addEventListener('change',()=>load(true));document.getElementById('timeframe')?.addEventListener('change',()=>load(true));document.getElementById('category')?.addEventListener('change',event=>{category=event.target.value;paint();});document.getElementById('apply-year')?.addEventListener('click',()=>load(true));await load(true);
 }
-export const publicPageReady=location.pathname==='/'?home():listing();
+export const publicPageReady=location.pathname==='/'?home():Promise.all([listing(),enhanceHierarchy()]);
